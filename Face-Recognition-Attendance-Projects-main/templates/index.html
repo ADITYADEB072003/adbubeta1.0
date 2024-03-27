@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webcam Attendance</title>
+</head>
+<body>
+    <h1>Webcam Attendance</h1>
+    <button id="take-attendance-btn">Take Attendance</button>
+
+    <script>
+        document.getElementById('take-attendance-btn').addEventListener('click', function() {
+            fetch('/take_attendance', {
+                method: 'POST'
+            })
+            .then(response => response.text())
+            .then(data => {
+                window.location.href = 'Face-Recognition-Attendance-Projects-main/templates/attendance.html';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to take attendance');
+            });
+        });
+    </script>
+</body>
+</html>
