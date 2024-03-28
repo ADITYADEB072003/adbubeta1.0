@@ -11,20 +11,20 @@ images = []
 studentIDs = []
 studentNames = []
 
-# Load images from subfolders
+# Load images from subfolders and extract student IDs and names from folder names
 for root, dirs, files in os.walk(path):
     for directory in dirs:
         subdir_path = os.path.join(root, directory)
-        for file in os.listdir(subdir_path):
-            img_path = os.path.join(subdir_path, file)
-            if os.path.isfile(img_path):
-                student_img = cv2.imread(img_path)
-                images.append(student_img)
-                studentID, studentName = os.path.splitext(file)[0].split('_')
-                studentIDs.append(studentID)
-                studentNames.append(studentName)
+        if os.path.isdir(subdir_path):
+            studentID, studentName = directory.split('_')
+            for file in os.listdir(subdir_path):
+                img_path = os.path.join(subdir_path, file)
+                if os.path.isfile(img_path):
+                    student_img = cv2.imread(img_path)
+                    images.append(student_img)
+                    studentIDs.append(studentID)
+                    studentNames.append(studentName)
 
-# Function to find encodings of the student images
 # Function to find encodings of the student images
 def findEncodings(images):
     encodeList = []
@@ -37,7 +37,6 @@ def findEncodings(images):
             encode = face_recognition.face_encodings(img, face_locations)[0]
             encodeList.append(encode)
     return encodeList
-
 
 # Function to mark attendance and store in CSV
 def markAttendance(studentID, studentName, marked_students):
@@ -101,3 +100,4 @@ while True:
 # Release the webcam
 cap.release()
 cv2.destroyAllWindows()
+    
