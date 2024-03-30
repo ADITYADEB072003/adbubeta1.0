@@ -3,24 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webcam Attendance</title>
+    <title>College Attendance System</title>
+    <style>
+        /* Styles for video container and other elements */
+    </style>
 </head>
 <body>
-    <h1>Webcam Attendance</h1>
-    <button id="take-attendance-btn">Take Attendance</button>
+    <h1>College Attendance System</h1>
+    <div id="video-container">
+        <img id="video" src="{{ url_for('video_feed') }}" alt="Video Feed">
+        <div id="face-info"></div>
+        <button id="mark-attendance">Mark Attendance</button>
+    </div>
 
     <script>
-        document.getElementById('take-attendance-btn').addEventListener('click', function() {
-            fetch('/take_attendance', {
-                method: 'POST'
+        document.getElementById('mark-attendance').addEventListener('click', function() {
+            var studentID = prompt('Enter student ID:');
+            var studentName = prompt('Enter student name:');
+            var folderName = prompt('Enter folder name:');
+
+            if (!studentID || !studentName || !folderName) {
+                alert('Please enter student ID, name, and folder name.');
+                return;
+            }
+
+            fetch('/mark_attendance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    'studentID': studentID,
+                    'studentName': studentName,
+                    'folderName': folderName
+                })
             })
-            .then(response => response.text())
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
             .then(data => {
-                window.location.href = 'Face-Recognition-Attendance-Projects-main/templates/attendance.html';
+                console.log(data);
+                alert('Attendance marked successfully!');
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to take attendance');
+                console.error('There was a problem with the fetch operation:', error);
+                alert('Failed to mark attendance. Please try again later.');
             });
         });
     </script>
