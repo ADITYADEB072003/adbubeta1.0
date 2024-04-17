@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 
 # Path to the directory containing training images
-path = 'Training_images'
+path = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/Face-Recognition-Attendance-Projects-main/Training_images/output'
 images = []
 classNames = []
 myList = os.listdir(path)

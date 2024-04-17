@@ -6,7 +6,7 @@ from datetime import datetime
 import csv
 
 # Path to the directory containing student images
-path = 'Student_Images'
+path = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/Face-Recognition-Attendance-Projects-main/Training_images/output'
 images = []
 studentIDs = []
 studentNames = []
