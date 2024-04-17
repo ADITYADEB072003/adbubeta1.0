@@ -9,19 +9,35 @@ images = []
 classNames = []
 myList = os.listdir(path)
 print(myList)
+
 for cl in myList:
-    curImg = cv2.imread(f'{path}/{cl}')
-    images.append(curImg)
-    classNames.append(os.path.splitext(cl)[0])
+    img_path = os.path.join(path, cl)
+    try:
+        curImg = cv2.imread(img_path)
+        if curImg is None:
+            print(f"Error: Unable to load image from {img_path}")
+            continue  # Skip to the next image if loading fails
+        images.append(curImg)
+        classNames.append(os.path.splitext(cl)[0])
+    except Exception as e:
+        print(f"Error loading image '{img_path}': {str(e)}")
+
 print(classNames)
 
 
 def findEncodings(images):
     encodeList = []
     for img in images:
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        encode = face_recognition.face_encodings(img)[0]
-        encodeList.append(encode)
+        try:
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            face_encodings = face_recognition.face_encodings(img)
+            if len(face_encodings) > 0:
+                encode = face_encodings[0]
+                encodeList.append(encode)
+            else:
+                print("No face detected in the image.")
+        except Exception as e:
+            print(f"Error processing image: {str(e)}")
     return encodeList
 
 

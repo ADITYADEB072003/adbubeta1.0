@@ -20,14 +20,18 @@ for root, dirs, files in os.walk(path):  # Traverse through the directory tree
         if os.path.isdir(subdir_path):   # Check if it's a directory
             # Extract student ID and name from folder name
             studentID, studentName = directory.split('_')
-            for file in os.listdir(subdir_path):  # Iterate over files in the subdirectory
-                img_path = os.path.join(subdir_path, file)  # Construct image file path
-                if os.path.isfile(img_path):   # Check if it's a file
-                    # Read the image using OpenCV
-                    student_img = cv2.imread(img_path)
-                    images.append(student_img)  # Append the image to the list
-                    studentIDs.append(studentID)  # Append the student ID to the list
-                    studentNames.append(studentName)  # Append the student name to the list
+            for file in os.listdir(subdir_path):
+             img_path = os.path.join(subdir_path, file)
+            if os.path.isfile(img_path):
+             student_img = cv2.imread(img_path)
+             if student_img is None:
+                    print(f"Error: Unable to load image from {img_path}")
+                    continue  # Skip to the next image if loading fails
+
+        images.append(student_img)
+        studentIDs.append(studentID)
+        studentNames.append(studentName)
+
 
 # Function to find encodings of the student images
 def findEncodings(images):

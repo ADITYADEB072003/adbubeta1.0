@@ -17,12 +17,18 @@ for root, dirs, files in os.walk(path):
         subdir_path = os.path.join(root, directory)
         for file in os.listdir(subdir_path):
             img_path = os.path.join(subdir_path, file)
-            if os.path.isfile(img_path):
-                student_img = cv2.imread(img_path)
-                images.append(student_img)
-                studentID, studentName = os.path.splitext(file)[0].split('_')
-                studentIDs.append(studentID)
-                studentNames.append(studentName)
+        if os.path.isfile(img_path):
+             student_img = cv2.imread(img_path)
+        if student_img is None:
+            print(f"Error: Unable to load image from {img_path}")
+            continue  # Skip to the next image if loading fails
+
+        # Extract studentID and studentName from filename
+        studentID, studentName, *_ = os.path.splitext(file)[0].split('_')
+
+        images.append(student_img)
+        studentIDs.append(studentID)
+        studentNames.append(studentName)
 
 # Function to find encodings of the student images
 # Function to find encodings of the student images
