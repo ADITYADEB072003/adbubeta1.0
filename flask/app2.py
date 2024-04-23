@@ -1,94 +1,125 @@
-import logging
-from flask import Flask, render_template, Response
 import cv2
+from flask import Flask, render_template, Response
 import face_recognition
-import numpy as np
 import os
+import numpy as np
 
 app = Flask(__name__)
-camera = cv2.VideoCapture(0)
 
-known_face_encodings = []
-known_face_names = []
+# Path to the directory containing student images
+images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Student_Images'
 
-# Function to load face encodings and names from images in subfolders
-def load_known_faces():
-    base_dir = "/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/faceapi/labels"
-    for folder in os.listdir(base_dir):
-        folder_path = os.path.join(base_dir, folder)
-        if os.path.isdir(folder_path):
-            for filename in os.listdir(folder_path):
-                image_path = os.path.join(folder_path, filename)
-                if filename.endswith(".jpg") or filename.endswith(".png"):
-                    # Load image and encode face
-                    try:
-                        face_image = face_recognition.load_image_file(image_path)
-                        face_encoding = face_recognition.face_encodings(face_image)
-                        if len(face_encoding) > 0:
-                            known_face_encodings.append(face_encoding[0])
-                            known_face_names.append(folder)
-                        else:
-                            logging.warning(f"No face detected in {image_path}")
-                    except Exception as e:
-                        logging.error(f"Error processing {image_path}: {str(e)}")
+# Initialize known_students dictionary
+known_students = {}
 
-# Generator function to process video frames
-def gen_frames():  
-    while True:
-        success, frame = camera.read()
-        if not success:
-            break
+
+def load_known_students():
+    global known_students
+    for subdir in os.listdir(images_dir):
+        subdir_path = os.path.join(images_dir, subdir)
+        if os.path.isdir(subdir_path):
+            student_id, student_name = subdir.split('_')
+            student_images = []
+            student_encodings = []
+
+            for filename in os.listdir(subdir_path):
+                image_path = os.path.join(subdir_path, filename)
+                img = cv2.imread(image_path)
+                if img is not None:
+                    # Convert image to RGB (face_recognition expects RGB)
+                    rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                    rgb_img = cv2.resize(rgb_img, (0, 0), fx=0.5, fy=0.5)
+
+                    # Detect faces and compute encodings
+                    face_locations = face_recognition.face_locations(rgb_img)
+                    if face_locations:
+                        face_encoding = face_recognition.face_encodings(rgb_img, face_locations)[0]
+                        student_images.append(rgb_img)  # Store RGB image
+                        student_encodings.append(face_encoding)
+                    else:
+                        print(f"No face detected in: {image_path}")
+                else:
+                    print(f"Error loading image: {image_path}")
+
+            if student_encodings:
+                known_students[student_id] = {
+                    'name': student_name,
+                    'images': student_images,
+                    'encodings': student_encodings
+                }
+            else:
+                print(f"No encodings found for student: {student_id}")
+
+
+def recognize_faces(frame, known_encodings):
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    # Detect face locations using CNN model for improved accuracy
+    face_locations = face_recognition.face_locations(rgb_frame)
+    face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
+
+    if not known_encodings or len(known_encodings) == 0:
+        print("No known encodings provided.")
+        return frame
+
+    for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+        # Initialize match list to store matches for each known encoding
+        matches = []
+
+        # Compare face encoding with each known encoding
+        for known_id, student_data in known_students.items():
+            for known_encoding in student_data['encodings']:
+                match = face_recognition.compare_faces([known_encoding], face_encoding, tolerance=0.6)
+                matches.append(match[0])  # Append the boolean match result
+
+        # Check if any match is found among known encodings
+        if np.any(matches):
+            matched_index = np.argmax(matches)  # Get index of first True value
+            student_id = list(known_students.keys())[matched_index]
+            student_name = known_students[student_id]['name']
+
+            # Draw rectangle around the face and display student ID and name
+            cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+            label = f"{student_id} - {student_name}"
+            cv2.putText(frame, label, (left + 6, bottom - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
         else:
-            # Resize frame for faster processing
-            small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
-            rgb_small_frame = small_frame[:, :, ::-1]  # Convert BGR to RGB
+            # Draw rectangle around the face and label as "Unknown"
+            cv2.rectangle(frame, (left, top), (right, bottom), (255, 0, 0), 2)
+            cv2.putText(frame, "Unknown", (left + 6, bottom - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
-            # Find faces in the frame
-            face_locations = face_recognition.face_locations(rgb_small_frame)
-            face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
-            face_names = []
+    return frame
 
-            for face_encoding in face_encodings:
-                # Compare faces with known faces
-                matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-                name = "Unknown"
 
-                # Find the best match
-                if True in matches:
-                    match_index = matches.index(True)
-                    name = known_face_names[match_index]
+def generate_frames():
+    cap = cv2.VideoCapture(0)
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
 
-                face_names.append(name)
+        # Get known encodings from global scope
+        known_encodings = [student_data['encodings'] for student_data in known_students.values()]
 
-            # Display results on the frame
-            for (top, right, bottom, left), name in zip(face_locations, face_names):
-                top *= 4
-                right *= 4
-                bottom *= 4
-                left *= 4
+        processed_frame = recognize_faces(frame, known_encodings)
 
-                # Draw rectangle around the face
-                cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-                # Draw label with name below the face
-                cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
-                font = cv2.FONT_HERSHEY_DUPLEX
-                cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+        ret, buffer = cv2.imencode('.jpg', processed_frame)
+        frame = buffer.tobytes()
 
-            # Encode frame as JPEG and yield for streaming
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/video_feed')
 def video_feed():
-    return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    load_known_faces()  # Load known faces at startup
-    app.run(debug=True)
+    load_known_students()
+    app.run(debug=True, port=5002)
+

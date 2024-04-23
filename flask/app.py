@@ -7,7 +7,7 @@ import numpy as np
 app = Flask(__name__)
 
 # Path to the directory containing student images
-images_dir = 'Student_Images'
+images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/labels'
 
 # Initialize known_students dictionary
 known_students = {}
@@ -72,14 +72,17 @@ def recognize_faces(frame, known_encodings):
             student_id = list(known_students.keys())[matched_index]
             student_name = known_students[student_id]['name']
 
-            # Draw rectangle around the face
+            # Draw rectangle around the face and display student ID and name
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
-
-            # Display student ID and name
             label = f"{student_id} - {student_name}"
             cv2.putText(frame, label, (left + 6, bottom - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        else:
+            # Draw rectangle around the face and label as "Unknown"
+            cv2.rectangle(frame, (left, top), (right, bottom), (255, 0, 0), 2)
+            cv2.putText(frame, "Unknown", (left + 6, bottom - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
     return frame
+
 
 
 def generate_frames():
