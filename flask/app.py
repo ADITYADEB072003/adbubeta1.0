@@ -7,7 +7,7 @@ import numpy as np
 app = Flask(__name__)
 
 # Path to the directory containing student images
-images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/labels'
+images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Student_Images'
 
 # Initialize known_students dictionary
 known_students = {}

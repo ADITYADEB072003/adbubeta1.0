@@ -1,8 +1,9 @@
 import cv2
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, Response, request, jsonify
 import face_recognition
 import os
-import numpy as np
+import csv
+import datetime
 
 app = Flask(__name__)
 
@@ -73,8 +74,8 @@ def recognize_faces(frame, known_encodings):
                 matches.append(match[0])  # Append the boolean match result
 
         # Check if any match is found among known encodings
-        if np.any(matches):
-            matched_index = np.argmax(matches)  # Get index of first True value
+        if any(matches):
+            matched_index = matches.index(True)  # Get index of first True value
             student_id = list(known_students.keys())[matched_index]
             student_name = known_students[student_id]['name']
 
@@ -82,12 +83,26 @@ def recognize_faces(frame, known_encodings):
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
             label = f"{student_id} - {student_name}"
             cv2.putText(frame, label, (left + 6, bottom - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+            # Update attendance in CSV file
+            update_attendance(student_id, student_name)
+
         else:
             # Draw rectangle around the face and label as "Unknown"
             cv2.rectangle(frame, (left, top), (right, bottom), (255, 0, 0), 2)
             cv2.putText(frame, "Unknown", (left + 6, bottom - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
     return frame
+
+
+def update_attendance(student_id, student_name):
+    # Path to the attendance CSV file
+    attendance_file = 'attendance.csv'
+
+    # Append attendance record to CSV file
+    with open(attendance_file, 'a', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow([student_id, student_name, datetime.datetime.now()])
 
 
 def generate_frames():
@@ -111,12 +126,24 @@ def generate_frames():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index2.html')
 
 
 @app.route('/video_feed')
 def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/capture_attendance', methods=['POST'])
+def capture_attendance():
+    data = request.get_json()
+    if data and data.get('action') == 'capture':
+        student_id1 = 'SomeStudentID'  # Replace with logic to identify student
+        student_name1 = 'SomeStudentName'  # Replace with logic to retrieve student name
+        update_attendance(student_id1, student_name1)
+        return jsonify({'message': 'Attendance captured successfully'}), 200
+    else:
+        return jsonify({'message': 'Invalid request'}), 400
 
 
 if __name__ == '__main__':

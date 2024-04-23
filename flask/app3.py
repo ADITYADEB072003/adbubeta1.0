@@ -1,13 +1,17 @@
 import cv2
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, Response, request, redirect, session
 import face_recognition
 import os
 import numpy as np
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Change this to a secure secret key
 
+# Define a predefined username and password (for demonstration purposes)
+USERNAME = 'admin'
+PASSWORD = 'password'
 # Path to the directory containing student images
-images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Student_Images'
+images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Student_Images'  # Update with your image directory path
 
 # Initialize known_students dictionary
 known_students = {}
@@ -110,13 +114,36 @@ def generate_frames():
 
 
 @app.route('/')
-def index():
-    return render_template('index.html')
+def home():
+    return redirect('/login')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        if username == USERNAME and password == PASSWORD:
+            session['logged_in'] = True
+            return redirect('/video_feed')
+        else:
+            return render_template('login.html', message='Invalid credentials. Please try again.')
+
+    return render_template('login.html')
 
 
 @app.route('/video_feed')
 def video_feed():
+    if not session.get('logged_in'):
+        return redirect('/login')
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect('/login')
 
 
 if __name__ == '__main__':
