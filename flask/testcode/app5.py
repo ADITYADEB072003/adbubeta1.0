@@ -9,9 +9,9 @@ import hashlib
 app = Flask(__name__)
 
 # Path to the directory containing student images
-images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Images/BCA 4'
+images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Images'
 # Path to store and load encodings
-encoding_file = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Images/BCA 4/known_encodings.pkl'
+encoding_file = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Images/known_encodings.pkl'
 
 # Initialize known_students dictionary
 known_students = {}
