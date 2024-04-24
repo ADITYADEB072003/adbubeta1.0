@@ -13,43 +13,36 @@ images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air
 known_students = {}
 
 
-def load_known_students():
+def load_known_students(directory):
     global known_students
-    for subdir in os.listdir(images_dir):
-        subdir_path = os.path.join(images_dir, subdir)
-        if os.path.isdir(subdir_path):
-            # Extract student_id by finding the first non-numeric character
-            for i, char in enumerate(subdir):
-                if not char.isdigit():
-                    student_id = subdir[:i]
-                    student_name = subdir[i:].strip()  # Remove leading/trailing whitespace
-                    break
-            else:
-                # If no non-numeric character found, use the entire name as student_id
-                student_id = subdir
-                student_name = ''
 
+    for root, dirs, files in os.walk(directory):
+        for subdir in dirs:
+            subdir_path = os.path.join(root, subdir)
+            student_id = subdir  # Use sub-subfolder name as student ID
+            student_name = ''  # Initialize student name
             student_images = []
             student_encodings = []
 
             for filename in os.listdir(subdir_path):
                 image_path = os.path.join(subdir_path, filename)
-                img = cv2.imread(image_path)
-                if img is not None:
-                    # Convert image to RGB (face_recognition expects RGB)
-                    rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                    rgb_img = cv2.resize(rgb_img, (0, 0), fx=0.5, fy=0.5)
+                if os.path.isfile(image_path):
+                    img = cv2.imread(image_path)
+                    if img is not None:
+                        # Convert image to RGB (face_recognition expects RGB)
+                        rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                        rgb_img = cv2.resize(rgb_img, (0, 0), fx=0.5, fy=0.5)
 
-                    # Detect faces and compute encodings
-                    face_locations = face_recognition.face_locations(rgb_img)
-                    if face_locations:
-                        face_encoding = face_recognition.face_encodings(rgb_img, face_locations)[0]
-                        student_images.append(rgb_img)  # Store RGB image
-                        student_encodings.append(face_encoding)
+                        # Detect faces and compute encodings
+                        face_locations = face_recognition.face_locations(rgb_img)
+                        if face_locations:
+                            face_encoding = face_recognition.face_encodings(rgb_img, face_locations)[0]
+                            student_images.append(rgb_img)  # Store RGB image
+                            student_encodings.append(face_encoding)
+                        else:
+                            print(f"No face detected in: {image_path}")
                     else:
-                        print(f"No face detected in: {image_path}")
-                else:
-                    print(f"Error loading image: {image_path}")
+                        print(f"Error loading image: {image_path}")
 
             if student_encodings:
                 known_students[student_id] = {
@@ -130,5 +123,5 @@ def video_feed():
 
 
 if __name__ == '__main__':
-    load_known_students()
+    load_known_students(images_dir)
     app.run(debug=True, port=5002)

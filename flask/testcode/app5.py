@@ -27,11 +27,14 @@ def load_known_students():
     global known_students
 
     if os.path.exists(encoding_file):
+        # Load known_students dictionary from file if it exists
         with open(encoding_file, 'rb') as f:
             known_students = pickle.load(f)
     else:
+        # Initialize empty known_students dictionary
         known_students = {}
 
+        # Iterate through each subdirectory (student folder) in the images directory
         for subdir in os.listdir(images_dir):
             subdir_path = os.path.join(images_dir, subdir)
             if os.path.isdir(subdir_path):
@@ -41,9 +44,11 @@ def load_known_students():
 
                 student_encodings = []
 
+                # Iterate through each image file in the student folder
                 for filename in os.listdir(subdir_path):
                     image_path = os.path.join(subdir_path, filename)
-                    # Check if image hash has changed
+
+                    # Check if image hash has changed or not previously stored
                     image_hash = compute_image_hash(image_path)
                     if image_hash not in known_students.get(student_id, {}).get('image_hashes', []):
                         # Load image and compute encodings
@@ -52,6 +57,7 @@ def load_known_students():
                             student_encodings.extend(face_encodings)
                             known_students.setdefault(student_id, {}).setdefault('image_hashes', []).append(image_hash)
 
+                # If student encodings are computed, update known_students dictionary
                 if student_encodings:
                     known_students[student_id] = {
                         'name': student_name,
@@ -59,7 +65,7 @@ def load_known_students():
                         'image_hashes': known_students[student_id].get('image_hashes', [])
                     }
 
-        # Save known_students to file using pickle
+        # Save known_students to file using pickle for future use
         with open(encoding_file, 'wb') as f:
             pickle.dump(known_students, f)
 
