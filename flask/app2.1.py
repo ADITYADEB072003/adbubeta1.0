@@ -60,6 +60,7 @@ def load_known_students():
             else:
                 print(f"No encodings found for student: {student_id}")
 
+
 def recognize_faces(frame, known_encodings):
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 

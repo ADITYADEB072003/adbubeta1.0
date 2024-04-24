@@ -3,62 +3,71 @@ from flask import Flask, render_template, Response
 import face_recognition
 import os
 import numpy as np
+import pickle
+import hashlib
 
 app = Flask(__name__)
 
 # Path to the directory containing student images
-images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Images'
+images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Images/BCA 4'
+# Path to store and load encodings
+encoding_file = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Images/BCA 4/known_encodings.pkl'
 
 # Initialize known_students dictionary
 known_students = {}
 
+def compute_image_hash(image_path):
+    """Compute and return the hash of an image file."""
+    with open(image_path, 'rb') as f:
+        image_data = f.read()
+        image_hash = hashlib.md5(image_data).hexdigest()
+    return image_hash
 
 def load_known_students():
     global known_students
-    for subdir in os.listdir(images_dir):
-        subdir_path = os.path.join(images_dir, subdir)
-        if os.path.isdir(subdir_path):
-            # Extract student_id by finding the first non-numeric character
-            for i, char in enumerate(subdir):
-                if not char.isdigit():
-                    student_id = subdir[:i]
-                    student_name = subdir[i:].strip()  # Remove leading/trailing whitespace
-                    break
-            else:
-                # If no non-numeric character found, use the entire name as student_id
+
+    if os.path.exists(encoding_file):
+        with open(encoding_file, 'rb') as f:
+            known_students = pickle.load(f)
+    else:
+        known_students = {}
+
+        for subdir in os.listdir(images_dir):
+            subdir_path = os.path.join(images_dir, subdir)
+            if os.path.isdir(subdir_path):
+                # Use folder name directly as student ID
                 student_id = subdir
-                student_name = ''
+                student_name = subdir  # Use folder name as student name
 
-            student_images = []
-            student_encodings = []
+                student_encodings = []
 
-            for filename in os.listdir(subdir_path):
-                image_path = os.path.join(subdir_path, filename)
-                img = cv2.imread(image_path)
-                if img is not None:
-                    # Convert image to RGB (face_recognition expects RGB)
-                    rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                    rgb_img = cv2.resize(rgb_img, (0, 0), fx=0.5, fy=0.5)
+                for filename in os.listdir(subdir_path):
+                    image_path = os.path.join(subdir_path, filename)
+                    # Check if image hash has changed
+                    image_hash = compute_image_hash(image_path)
+                    if image_hash not in known_students.get(student_id, {}).get('image_hashes', []):
+                        # Load image and compute encodings
+                        face_encodings = compute_face_encodings(image_path)
+                        if face_encodings:
+                            student_encodings.extend(face_encodings)
+                            known_students.setdefault(student_id, {}).setdefault('image_hashes', []).append(image_hash)
 
-                    # Detect faces and compute encodings
-                    face_locations = face_recognition.face_locations(rgb_img)
-                    if face_locations:
-                        face_encoding = face_recognition.face_encodings(rgb_img, face_locations)[0]
-                        student_images.append(rgb_img)  # Store RGB image
-                        student_encodings.append(face_encoding)
-                    else:
-                        print(f"No face detected in: {image_path}")
-                else:
-                    print(f"Error loading image: {image_path}")
+                if student_encodings:
+                    known_students[student_id] = {
+                        'name': student_name,
+                        'encodings': student_encodings,
+                        'image_hashes': known_students[student_id].get('image_hashes', [])
+                    }
 
-            if student_encodings:
-                known_students[student_id] = {
-                    'name': student_name,
-                    'images': student_images,
-                    'encodings': student_encodings
-                }
-            else:
-                print(f"No encodings found for student: {student_id}")
+        # Save known_students to file using pickle
+        with open(encoding_file, 'wb') as f:
+            pickle.dump(known_students, f)
+
+def compute_face_encodings(image_path):
+    img = face_recognition.load_image_file(image_path)
+    face_locations = face_recognition.face_locations(img)
+    face_encodings = face_recognition.face_encodings(img, face_locations)
+    return face_encodings
 
 def recognize_faces(frame, known_encodings):
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -76,7 +85,7 @@ def recognize_faces(frame, known_encodings):
         matches = []
 
         # Compare face encoding with each known encoding
-        for known_id, student_data in known_students.items():
+        for student_id, student_data in known_students.items():
             for known_encoding in student_data['encodings']:
                 match = face_recognition.compare_faces([known_encoding], face_encoding, tolerance=0.6)
                 matches.append(match[0])  # Append the boolean match result
@@ -98,7 +107,6 @@ def recognize_faces(frame, known_encodings):
 
     return frame
 
-
 def generate_frames():
     cap = cv2.VideoCapture(0)
     while True:
@@ -117,16 +125,13 @@ def generate_frames():
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
 
-
 @app.route('/video_feed')
 def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
 
 if __name__ == '__main__':
     load_known_students()
