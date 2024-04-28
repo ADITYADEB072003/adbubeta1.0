@@ -21,17 +21,17 @@ def login():
 
         if username == USERNAME and password == PASSWORD:
             session['logged_in'] = True
-            return redirect('/index1')
+            return redirect('/index')
         else:
             return render_template('login.html', message='Invalid credentials. Please try again.')
 
     return render_template('login.html')
 
 
-@app.route('/index1')
+@app.route('/index')
 def index():
     if session.get('logged_in'):
-        return render_template('index1.html')
+        return render_template('index.html')
     else:
         return redirect('/login')
 
@@ -41,6 +41,10 @@ def logout():
     session.pop('logged_in', None)
     return redirect('/login')
 
+@app.route('/video_feed')
+def video_feed():
+    # Placeholder for providing video feed
+    return "Placeholder for video feed"
 
 if __name__ == '__main__':
     app.run(debug=True)
