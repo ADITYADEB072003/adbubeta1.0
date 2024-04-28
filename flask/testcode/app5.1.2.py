@@ -98,7 +98,7 @@ def recognize_faces(frame, known_encodings):
         # Compare face encoding with each known encoding
         for student_id, student_data in known_students.items():
             for known_encoding in student_data['encodings']:
-                match = face_recognition.compare_faces([known_encoding], face_encoding, tolerance=0.6)
+                match = face_recognition.compare_faces([known_encoding], face_encoding, tolerance=0.5)
                 matches.append(match[0])  # Append the boolean match result
 
         # Check if any match is found among known encodings
