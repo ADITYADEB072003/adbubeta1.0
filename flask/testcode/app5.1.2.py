@@ -124,25 +124,32 @@ def recognize_faces(frame, known_encodings):
 
 # Define a time window within which similar faces won't be recorded again (e.g., 5 minutes)
 
+logged_student_ids = set()
+
 def log_recognized_face(student_id, student_name):
-    global recognized_faces
+    global recognized_faces, logged_student_ids
+    timestamp = datetime.now()
+
+    # Check if the student ID has already been logged
+    if student_id in logged_student_ids:
+        print(f"Student ID {student_id} already logged. Skipping.")
+        return
 
     # Generate a unique key for each recognized face
-    face_key = f"{student_id}"
+    face_key = f"{student_id}_{student_name}_{timestamp}"
 
-    # Check if the face has already been recognized
-    if face_key not in recognized_faces:
-        # Add the recognized face to the set of recognized faces
-        recognized_faces.add(face_key)
+    # Add the face to the set of recognized faces
+    recognized_faces.add(face_key)
 
-        # Append the recognized face to the CSV file
-        with open(recognized_faces_csv, 'a', newline='') as csvfile:
-            fieldnames = ['Student ID', 'Student Name', 'Timestamp']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    # Append the recognized face to the CSV file
+    with open(recognized_faces_csv, 'a', newline='') as csvfile:
+        fieldnames = ['Student ID', 'Student Name', 'Timestamp']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
-            timestamp = datetime.now()
-            writer.writerow({'Student ID': student_id, 'Student Name': student_name, 'Timestamp': timestamp})
+        writer.writerow({'Student ID': student_id, 'Student Name': student_name, 'Timestamp': timestamp})
 
+    # Add the student ID to the set of logged student IDs
+    logged_student_ids.add(student_id)
 
 def generate_frames():
     cap = cv2.VideoCapture(0)

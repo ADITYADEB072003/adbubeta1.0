@@ -119,7 +119,6 @@ def recognize_faces(frame, known_encodings):
             cv2.putText(frame, "Unknown", (left + 6, bottom - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
     return frame
-
 from datetime import timedelta
 
 # Define a time window within which similar faces won't be recorded again (e.g., 5 minutes)
