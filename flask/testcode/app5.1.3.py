@@ -3,7 +3,7 @@ from flask import Flask, render_template, Response
 import face_recognition
 import os
 import numpy as np
-import json
+import pickle
 import hashlib
 import csv
 from datetime import datetime
@@ -11,12 +11,11 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Path to the directory containing student images
-images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Images/BCA 4'
+images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/testcode/Images/BCA 4'
 # Path to store and load encodings
-encoding_file = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Images/BCA 4/known_encodings.json'
+encoding_file = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/testcode/Images/BCA 4/known_encodings.pkl'
 # Path to the CSV file to record recognized faces
-recognized_faces_csv = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Images/BCA 4/recognized_faces.csv'
-
+recognized_faces_csv = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/testcode/Images/BCA 4/recognized_faces.csv'
 # Initialize known_students dictionary
 known_students = {}
 recognized_faces = set()  # Set to store recognized faces
@@ -32,14 +31,9 @@ def load_known_students():
     global known_students
 
     if os.path.exists(encoding_file):
-        # Load known_students dictionary from JSON file if it exists
-        with open(encoding_file, 'r') as f:
-            try:
-                known_students = json.load(f)
-                print("Loaded known students:", known_students)  # Debugging line
-            except json.JSONDecodeError as e:
-                print("Error loading JSON file:", e)
-                known_students = {}
+        # Load known_students dictionary from file if it exists
+        with open(encoding_file, 'rb') as f:
+            known_students = pickle.load(f)
     else:
         # Initialize empty known_students dictionary
         known_students = {}
@@ -71,27 +65,19 @@ def load_known_students():
                 if student_encodings:
                     known_students[student_id] = {
                         'name': student_name,
-                        'encodings': student_encodings.tolist(),  # Convert ndarray to list
+                        'encodings': student_encodings,
                         'image_hashes': known_students[student_id].get('image_hashes', [])
                     }
 
-        # Save known_students to file using JSON for future use
-        with open(encoding_file, 'w') as f:
-            json.dump(known_students, f)
+        # Save known_students to file using pickle for future use
+        with open(encoding_file, 'wb') as f:
+            pickle.dump(known_students, f)
 
 def compute_face_encodings(image_path):
-    try:
-        if os.path.exists(image_path):  # Check if the file exists
-            img = face_recognition.load_image_file(image_path)
-            face_locations = face_recognition.face_locations(img)
-            face_encodings = face_recognition.face_encodings(img, face_locations)
-            return face_encodings
-        else:
-            print("Image file does not exist:", image_path)
-            return []
-    except Exception as e:
-        print("Error processing image:", e)
-        return []
+    img = face_recognition.load_image_file(image_path)
+    face_locations = face_recognition.face_locations(img)
+    face_encodings = face_recognition.face_encodings(img, face_locations)
+    return face_encodings
 
 def recognize_faces(frame, known_encodings):
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -134,24 +120,37 @@ def recognize_faces(frame, known_encodings):
 
     return frame
 
+from datetime import timedelta
+
+# Define a time window within which similar faces won't be recorded again (e.g., 5 minutes)
+TIME_WINDOW = timedelta(minutes=5)
+
 def log_recognized_face(student_id, student_name):
     global recognized_faces
     timestamp = datetime.now()
 
     # Generate a unique key for each recognized face
-    face_key = f"{student_id}_{student_name}_{timestamp}"
+    face_key = f"{student_id}"
 
-    # Check if the face has already been recognized
-    if face_key not in recognized_faces:
-        # Add the face to the set of recognized faces
-        recognized_faces.add(face_key)
+    # Check if the face has already been recognized within the time window
+    for recognized_face in recognized_faces:
+        face_id, _, face_timestamp = recognized_face.split('_')
+        face_timestamp = datetime.fromisoformat(face_timestamp)
 
-        # Append the recognized face to the CSV file
-        with open(recognized_faces_csv, 'a', newline='') as csvfile:
-            fieldnames = ['Student ID', 'Student Name', 'Timestamp']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        if face_id == student_id and timestamp - face_timestamp < TIME_WINDOW:
+            # If the same student ID has been recognized recently, skip recording
+            return
 
-            writer.writerow({'Student ID': student_id, 'Student Name': student_name, 'Timestamp': timestamp})
+    # Add the recognized face to the set of recognized faces
+    recognized_faces.add(f"{face_key}_{student_name}_{timestamp}")
+
+    # Append the recognized face to the CSV file
+    with open(recognized_faces_csv, 'a', newline='') as csvfile:
+        fieldnames = ['Student ID', 'Student Name', 'Timestamp']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        writer.writerow({'Student ID': student_id, 'Student Name': student_name, 'Timestamp': timestamp})
+
 
 def generate_frames():
     cap = cv2.VideoCapture(0)
@@ -177,7 +176,7 @@ def index():
 
 @app.route('/video_feed')
 def video_feed():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
     load_known_students()

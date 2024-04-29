@@ -11,12 +11,11 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Path to the directory containing student images
-images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Images/BCA 4'
+images_dir = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/testcode/Images/BCA 4'
 # Path to store and load encodings
-encoding_file = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Images/BCA 4/known_encodings.pkl'
+encoding_file = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/testcode/Images/BCA 4/known_encodings.pkl'
 # Path to the CSV file to record recognized faces
-recognized_faces_csv = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/Images/BCA 4/recognized_faces.csv'
-
+recognized_faces_csv = '/Users/adityadebchowdhury/Desktop/Desktop - Aditya’s MacBook Air/opencv2/flask/testcode/Images/BCA 4/recognized_faces.csv'
 # Initialize known_students dictionary
 known_students = {}
 recognized_faces = set()  # Set to store recognized faces
@@ -121,16 +120,19 @@ def recognize_faces(frame, known_encodings):
 
     return frame
 
+
+
+# Define a time window within which similar faces won't be recorded again (e.g., 5 minutes)
+
 def log_recognized_face(student_id, student_name):
     global recognized_faces
-    timestamp = datetime.now()
 
     # Generate a unique key for each recognized face
-    face_key = f"{student_id}_{student_name}_{timestamp}"
+    face_key = f"{student_id}"
 
     # Check if the face has already been recognized
     if face_key not in recognized_faces:
-        # Add the face to the set of recognized faces
+        # Add the recognized face to the set of recognized faces
         recognized_faces.add(face_key)
 
         # Append the recognized face to the CSV file
@@ -138,7 +140,9 @@ def log_recognized_face(student_id, student_name):
             fieldnames = ['Student ID', 'Student Name', 'Timestamp']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
+            timestamp = datetime.now()
             writer.writerow({'Student ID': student_id, 'Student Name': student_name, 'Timestamp': timestamp})
+
 
 def generate_frames():
     cap = cv2.VideoCapture(0)
