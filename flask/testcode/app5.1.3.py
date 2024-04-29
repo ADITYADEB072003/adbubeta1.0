@@ -71,7 +71,7 @@ def load_known_students():
                 if student_encodings:
                     known_students[student_id] = {
                         'name': student_name,
-                        'encodings': student_encodings,
+                        'encodings': student_encodings.tolist(),  # Convert ndarray to list
                         'image_hashes': known_students[student_id].get('image_hashes', [])
                     }
 
@@ -80,10 +80,18 @@ def load_known_students():
             json.dump(known_students, f)
 
 def compute_face_encodings(image_path):
-    img = face_recognition.load_image_file(image_path)
-    face_locations = face_recognition.face_locations(img)
-    face_encodings = face_recognition.face_encodings(img, face_locations)
-    return face_encodings
+    try:
+        if os.path.exists(image_path):  # Check if the file exists
+            img = face_recognition.load_image_file(image_path)
+            face_locations = face_recognition.face_locations(img)
+            face_encodings = face_recognition.face_encodings(img, face_locations)
+            return face_encodings
+        else:
+            print("Image file does not exist:", image_path)
+            return []
+    except Exception as e:
+        print("Error processing image:", e)
+        return []
 
 def recognize_faces(frame, known_encodings):
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -103,7 +111,7 @@ def recognize_faces(frame, known_encodings):
         # Compare face encoding with each known encoding
         for student_id, student_data in known_students.items():
             for known_encoding in student_data['encodings']:
-                match = face_recognition.compare_faces([known_encoding], face_encoding, tolerance=0.6)
+                match = face_recognition.compare_faces([known_encoding], face_encoding, tolerance=0.5)
                 matches.append(match[0])  # Append the boolean match result
 
         # Check if any match is found among known encodings
