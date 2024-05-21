@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP System for Faculty</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: 0.5s;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgb(55, 237, 55);
+        }
+        .header h2 {
+            margin: 10px 0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .form-group input[type="date"],
+        .form-group input[type="time"] {
+            padding: 8px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover {
+            background-color: #218426;
+        }
+        .logo {
+            text-align: left;
+            margin-bottom: 20px;
+            object-fit: cover;
+            width: 100px;
+            height: 100px;
+        }
+        .logo img {
+            border-radius: 50%;
+            height: 100px;
+            border: 3px solid rgb(0, 0, 0);
+            transition: 0.3s;
+        }
+        h4 {
+            margin-top: 2px;
+            color: rgb(89, 86, 79);
+            margin-left: 35px;
+        }
+        .form-group:hover {
+            color: #5bc13f;
+        }
+        a {
+            text-decoration: none;
+        }
+        .logo a:hover img {
+            box-shadow: 0 8px 16px black;
+        }
+        .container:hover {
+            box-shadow: 0 8px 16px #494444;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            .header img {
+                width: 100px;
+                height: 100px;
+            }
+            .header h2 {
+                font-size: 1.5rem;
+            }
+            .logo img {
+                height: 75px;
+            }
+            h4 {
+                font-size: 1rem;
+                margin-left: 20px;
+            }
+        }
+        @media (max-width: 400px) {
+            .header h2 {
+                font-size: 1.2rem;
+            }
+            h4 {
+                font-size: 0.8rem;
+                margin-left: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <a href="https://www.dbuniversity.ac.in/">
+            <img src="https://upload.wikimedia.org/wikipedia/en/4/43/Assam_Don_Bosco_University_Logo.jpg" alt="University Logo">
+            <h4>ADBU</h4>
+        </a>
+    </div>
+    <div class="container">
+        <div class="header">
+            <img src="https://static.vecteezy.com/system/resources/previews/007/409/979/original/people-icon-design-avatar-icon-person-icons-people-icons-are-set-in-trendy-flat-style-user-icon-set-vector.jpg" alt="Faculty Image">
+            <h2>Dr. James </h2>
+        </div>
+        <form id="attendanceForm">
+            <div class="form-group">
+                <label for="classSelect" class="a">Select Class</label>
+                <select id="classSelect" required>
+                    <option value="" disabled selected>Select a class</option>
+                    <option value="Class 1">BCA 2</option>
+                    <option value="Class 2">BCA 4</option>
+                    <option value="Class 3">BCA 6</option>
+                    <!-- Add more classes as needed -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="dateSelect">Select Date</label>
+                <input type="date" id="dateSelect" required>
+            </div>
+            <div class="form-group">
+                <label for="timeSelect">Select Time</label>
+                <input type="time" id="timeSelect" required>
+            </div>
+            <button type="submit">Authenticate via Biometric Attendance</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('attendanceForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const classSelect = document.getElementById('classSelect').value;
+            const dateSelect = document.getElementById('dateSelect').value;
+            const timeSelect = document.getElementById('timeSelect').value;
+
+            if (classSelect && dateSelect && timeSelect) {
+                alert(`Attendance recorded for:\nClass: ${classSelect}\nDate: ${dateSelect}\nTime: ${timeSelect}`);
+            } else {
+                alert('Please fill out all fields.');
+            }
+        });
+    </script>
+</body>
+</html>
