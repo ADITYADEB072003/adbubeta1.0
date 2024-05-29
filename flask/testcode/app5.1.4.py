@@ -146,7 +146,7 @@ def log_recognized_face(student_id, student_name):
 
 @app.route('/')
 def index():
-    return render_template('index1.html')
+    return render_template('index5.html')
 
 @socketio.on('message')
 def handle_message(base64_data):
