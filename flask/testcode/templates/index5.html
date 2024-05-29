@@ -4,7 +4,12 @@
 <head>
     <link rel="stylesheet" href="style1.css" />
     <link rel="stylesheet" href="{{ url_for('static', filename='style1.css') }}">
-   
+    <script>
+        window.onload = function() {
+            // Open another URL in a new tab
+          window.open('http://127.0.0.1:5002/', '_blank')
+            
+        };</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Face Recognition</title>
@@ -75,5 +80,6 @@
             }
         });
     </script>
+    <button><a href="http://127.0.0.1:5000/logout">Logout</a></button> 
 </body>
 </html>

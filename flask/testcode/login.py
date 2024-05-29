@@ -21,17 +21,17 @@ def login():
 
         if username == USERNAME and password == PASSWORD:
             session['logged_in'] = True
-            return redirect('/index')
+            return redirect('/index5')
         else:
             return render_template('login.html', message='Invalid credentials. Please try again.')
 
     return render_template('login.html')
 
 
-@app.route('/index')
+@app.route('/index5')
 def index():
     if session.get('logged_in'):
-        return render_template('index.html')
+        return render_template('index5.html')
     else:
         return redirect('/login')
 
