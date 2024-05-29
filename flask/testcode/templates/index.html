@@ -36,66 +36,24 @@
     <hr class="line">
     <footer class="bg-primary text-white text-center text-lg-start">
       <!-- Grid container -->
-      <div class="container p-4">
-        <!--Grid row-->
-        <div class="row">
-          <!--Grid column-->
-          <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
-            <h5 class="text-uppercase">Footer Content</h5>
-
-            <p>
-              Lorem ipsum dolor sit amet consectetur, adipisicing elit. Iste
-              atque ea quis molestias. Fugiat pariatur maxime quis culpa
-              corporis vitae repudiandae aliquam voluptatem veniam, est atque
-              cumque eum delectus sint!
-            </p>
-          </div>
-          <!--Grid column-->
-
-          <!--Grid column-->
-          <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-            <h5 class="text-uppercase">Links</h5>
-
-            <ul class="list-unstyled mb-0">
-              <li>
-                <a href="#!" class="text-white">Link 1</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 2</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 3</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 4</a>
-              </li>
-            </ul>
-          </div>
-          <!--Grid column-->
-
-          <!--Grid column-->
-          <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-            <h5 class="text-uppercase mb-0">Links</h5>
-
-            <ul class="list-unstyled">
-              <li>
-                <a href="#!" class="text-white">Link 1</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 2</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 3</a>
-              </li>
-              <li>
-                <a href="#!" class="text-white">Link 4</a>
-              </li>
-            </ul>
-          </div>
-          <!--Grid column-->
-        </div>
-        <!--Grid row-->
-      </div>
+      <table>
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Student Name</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for face in recognized_faces %}
+            <tr>
+                <td>{{ face['Student ID'] }}</td>
+                <td>{{ face['Student Name'] }}</td>
+                <td>{{ face['Timestamp'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
       <!-- Grid container -->
 
       <!-- Copyright -->
@@ -115,6 +73,7 @@
       integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
       crossorigin="anonymous"
     ></script>
+    
    <button><a href="http://127.0.0.1:5000/logout">Logout</a></button> 
   </body>
 </html>

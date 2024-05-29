@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Face Recognition</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Face Recognition System</h1>
+    <h2>Live Video Feed</h2>
+    <img src="{{ url_for('video_feed') }}" width="100%">
+
+    <h2>Recognized Faces</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Student Name</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for face in recognized_faces %}
+            <tr>
+                <td>{{ face['Student ID'] }}</td>
+                <td>{{ face['Student Name'] }}</td>
+                <td>{{ face['Timestamp'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
